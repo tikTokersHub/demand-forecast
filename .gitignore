@@ -1,0 +1,27 @@
+# Environment
+.venv/
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build / packaging
+*.egg-info/
+dist/
+build/
+
+# Data files
+data/raw/
+*.parquet
+
+# Experiment tracking
+mlruns/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store

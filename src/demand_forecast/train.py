@@ -8,6 +8,7 @@ from sklearn.metrics import mean_absolute_error
 import lightgbm as lgb
 
 from eva import compute_wrmsse
+from detector import ForecastAnomalyDetector
 
 
 FEATURE_PATH = Path("data/processed/feature_table.parquet")
@@ -147,6 +148,21 @@ def main():
 
     print(f"Validation MAE: {lgb_mae:.4f}")
     print(f"WRMSSE: {lgb_wrmsse:.5f}")
+
+    anomaly_df = val_keys_df.select(["item_id", "store_id", "date", "sales"]).to_pandas()
+    anomaly_df["predicted"] = lgb_preds
+    anomaly_df = anomaly_df.rename(columns={"sales": "actual"})
+
+    detector = ForecastAnomalyDetector()
+
+    anomaly_results = detector.detect(anomaly_df)
+
+    print("\nIsolation Forest anomalies only")
+    print(
+        anomaly_results.loc[anomaly_results["anomaly_iso"] == 1,
+            ["item_id", "store_id", "date", "actual", "predicted", "residual", "anomaly_iso"]
+        ].head(20)
+    )
 
 
 if __name__ == "__main__":

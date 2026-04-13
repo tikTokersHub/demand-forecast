@@ -3,6 +3,10 @@
 install:
 	uv pip install -e .
 
+install-dl:
+	uv pip install torch --index-url https://download.pytorch.org/whl/cu121
+	uv pip install pytorch-forecasting lightning
+
 ingest:
 	python src/scripts/run_ingest.py
 
@@ -33,3 +37,9 @@ format:
 	ruff format src/ tests/
 
 ci: lint test
+
+train-tft:
+	python src/demand_forecast/tft_model.py
+
+tensorboard:
+	tensorboard --logdir tb_logs --port 6006

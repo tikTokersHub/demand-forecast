@@ -21,7 +21,7 @@ def load_raw_data():
 
     return sales_df, cal_df, prices_df
 
-def melt_safe_to_long(sales_df:pl.DataFrame) -> pl.DataFrame:
+def melt_sales_to_long(sales_df:pl.DataFrame) -> pl.DataFrame:
     id_cols = ["item_id", "dept_id", "cat_id", "store_id", "state_id"]
     day_cols = [c for c in sales_df.columns if c.startswith("d_")]
 
@@ -73,7 +73,7 @@ def write_output(
     cal_df.write_parquet(PROCESSED_DIR / "calendar.parquet")
     prices_df.write_parquet(PROCESSED_DIR / "prices.parquet")
 
-def main():
+def run_ingest() -> dict[str, int]:
     print("Loading raw CSV files...")
     sales_df, cal_df, prices_df = load_raw_data()
 
@@ -81,7 +81,7 @@ def main():
     cal_df = prepare_calendar(cal_df)
 
     print("Melting sales to long format...")
-    sales_long = melt_safe_to_long(sales_df)
+    sales_long = melt_sales_to_long(sales_df)
 
     print("Joining calendar and prices...")
     joined_df = join_sales_cal_prices(sales_long, cal_df, prices_df)
@@ -89,11 +89,24 @@ def main():
     print("Writing parquet files...")
     write_output(joined_df, cal_df, prices_df)
 
+    summary = {
+        "sales_long_rows": sales_long.height,
+        "joined_rows": joined_df.height,
+        "calendar_rows": cal_df.height,
+        "prices_rows": prices_df.height,
+    }
+
     print("Done.")
     print(f"sales_long rows: {sales_long.height:,}")
+    print(f"joined rows:     {joined_df.height:,}")
     print(f"calendar rows:   {cal_df.height:,}")
     print(f"prices rows:     {prices_df.height:,}")
 
+    return summary
+
+def main() -> None:
+    run_ingest()
+    
 if __name__ == "__main__":
     main()
 

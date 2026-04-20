@@ -10,7 +10,7 @@ class ValidResult:
     detail: str
 
 
-def validate(feature_path: str) -> list[ValidResult]:
+def validate(feature_path: str = "data/processed/feature_table.parquet") -> list[ValidResult]:
     con = duckdb.connect()
     results: list[ValidResult] = []
     path = Path(feature_path)

@@ -43,3 +43,12 @@ train-tft:
 
 tensorboard:
 	tensorboard --logdir tb_logs --port 6006
+
+docker-build:
+	docker compose build
+
+docker-up:
+	docker compose up -d
+
+docker-down:
+	docker compose down

@@ -1,27 +1,63 @@
+# ========================
 # Environment
+# ========================
 .venv/
 .env
+.env.*
 
+# ========================
 # Python cache
+# ========================
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
+# ========================
 # Build / packaging
+# ========================
 *.egg-info/
 dist/
 build/
 
-# Data files
+# ========================
+# Data
+# ========================
 data/raw/
 *.parquet
 
-# Experiment tracking
+# ========================
+# ML / Experiment tracking
+# ========================
 mlruns/
+mlflow.db
 
+# ========================
+# Reports / outputs
+# ========================
+reports/
+*.csv
+*.png
+
+# ========================
+# Deep learning logs
+# ========================
+lightning_logs/
+tb_logs/
+
+# ========================
 # Jupyter
+# ========================
 .ipynb_checkpoints/
 
+# ========================
+# Docker
+# ========================
+*.log
+docker-compose.override.yml
+
+# ========================
 # OS files
+# ========================
 .DS_Store
+Thumbs.db

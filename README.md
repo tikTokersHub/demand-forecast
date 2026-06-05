@@ -2,9 +2,10 @@
 
 Retail demand forecasting and anomaly detection for M5-style sales data. The
 project ingests raw sales, calendar, and price CSVs; builds a feature table with
-DuckDB; validates the processed dataset; trains baseline forecasting models; logs
-experiments to MLflow; and produces prediction and anomaly reports that can be
-served through a FastAPI endpoint and viewed in a Streamlit dashboard.
+DuckDB; validates the processed dataset; compares RandomForest, LightGBM, and
+Temporal Fusion Transformer forecasting approaches; tracks experiments with
+MLflow; and produces prediction and anomaly reports that can be served through a
+FastAPI endpoint and viewed in a Streamlit dashboard.
 
 ## Pipeline Overview
 
@@ -13,12 +14,23 @@ served through a FastAPI endpoint and viewed in a Streamlit dashboard.
 3. Join sales with calendar and sell-price data.
 4. Build lag, rolling-window, calendar, price, and event features with DuckDB.
 5. Validate the processed feature table before training.
-6. Train LightGBM and RandomForest regressors on a CA_1 top-item subset.
-7. Compare models with MAE and WRMSSE, then write validation predictions.
-8. Detect forecast anomalies from prediction residuals.
+6. Train RandomForest and LightGBM regressors on a CA_1 top-item subset.
+7. Track model parameters, validation metrics, and model artifacts with MLflow.
+8. Compare models with MAE and WRMSSE, then write validation predictions.
+9. Detect forecast anomalies from prediction residuals.
 
-An experimental Temporal Fusion Transformer workflow is also available in
-`src/demand_forecast/tft_model.py`.
+## Modeling Experiments
+
+The main training workflow benchmarks RandomForest and LightGBM regressors using
+lag, rolling-window, price, calendar, and event features. Both runs are logged to
+MLflow with their parameters and validation metrics, including MAE and WRMSSE.
+The best-performing tree model is persisted as an MLflow model artifact.
+
+The project also includes a Temporal Fusion Transformer (TFT) experiment in
+`src/demand_forecast/tft_model.py`. The TFT workflow is designed for deeper
+sequence modeling over grouped retail time series and logs its training
+configuration and best validation loss to MLflow, with TensorBoard outputs saved
+under `tb_logs/`.
 
 ## Repository Layout
 
@@ -28,13 +40,13 @@ An experimental Temporal Fusion Transformer workflow is also available in
 |   |-- ingest.py          # Raw CSV loading, reshaping, and parquet output
 |   |-- features.py        # DuckDB feature engineering
 |   |-- validate.py        # Data quality checks for the feature table
-|   |-- train.py           # LightGBM and RandomForest training
+|   |-- train.py           # RandomForest and LightGBM training with MLflow
 |   |-- eva.py             # WRMSSE evaluation helper
 |   |-- detector.py        # Residual and IsolationForest anomaly detection
 |   |-- run_pipeline.py    # Prefect flow tying ingestion through anomaly output
 |   |-- inference.py       # Forecast feature construction for serving
 |   |-- api.py             # FastAPI forecast endpoint
-|   `-- tft_model.py       # Optional deep learning model workflow
+|   `-- tft_model.py       # TFT deep learning experiment with MLflow tracking
 |-- ui.py                  # Streamlit dashboard for forecast visualization
 |-- pyproject.toml         # Package metadata and Python dependencies
 |-- Dockerfile             # Training and serving image stages
@@ -89,7 +101,7 @@ The dashboard uses packages that are not currently listed in `pyproject.toml`:
 uv pip install streamlit plotly httpx
 ```
 
-For the optional TFT workflow, install the deep learning dependencies:
+For the TFT experiment, install the deep learning dependencies:
 
 ```bash
 make install-dl
@@ -145,8 +157,10 @@ highlights forecast anomaly flags returned by the API.
 
 ## MLflow And Docker
 
-Training logs runs and metrics to local `mlruns/` by default. The Docker Compose
-file also defines an MLflow service on port `5000`:
+Training logs model parameters, metrics, and artifacts to local `mlruns/` by
+default. RandomForest, LightGBM, and TFT experiments are all tracked through
+MLflow, while the Docker Compose file also defines an MLflow service on port
+`5000`:
 
 ```bash
 docker compose up -d mlflow
